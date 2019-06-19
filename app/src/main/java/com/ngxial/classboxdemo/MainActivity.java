@@ -10,7 +10,11 @@ import android.widget.TextView;
 
 import com.ngxial.classboxdemo.common.SharedPrefWrapper;
 import com.ngxial.classboxdemo.common.cloud.ClassBoxService;
+import com.ngxial.classboxdemo.common.cloud.pojo.BoxGroup;
+import com.ngxial.classboxdemo.common.cloud.pojo.BoxGroupInfo;
 import com.ngxial.classboxdemo.common.cloud.pojo.Channel;
+import com.ngxial.classboxdemo.common.cloud.pojo.ChannelGroup;
+import com.ngxial.classboxdemo.common.cloud.pojo.ChannelGroupInfo;
 import com.ngxial.classboxdemo.common.cloud.pojo.ChannelInfo;
 import com.ngxial.classboxdemo.common.cloud.pojo.LoginInfo;
 import com.ngxial.classboxdemo.common.cloud.pojo.Program;
@@ -29,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTextMessage;
 
     private Subscription mInitSubscription;
+    private Subscription mBindChannelSubscription;
+    private Subscription munBindChannelSubscription;
+    private Subscription mPushGroupProgramSubscription;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -99,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("ClassBoxServer", "init completed!");
                         Log.d("ClassBoxServer", "channel id : " + mWrapper.getChannelID());
                         Log.d("ClassBoxServer", "program id : " + mWrapper.getProgramID());
+                        Log.d("ClassBoxServer", "channel group id : " + mWrapper.getChanneGrouplID());
+                        Log.d("ClassBoxServer", "box group id : " + mWrapper.getBoxGrouplID());
                     }
 
                     @Override
@@ -114,14 +123,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindChannel() {
+        mBindChannelSubscription =
+                mService.bindChannel(mWrapper.getToken(), mWrapper.getChanneGrouplID(), mWrapper.getChannelID())
+                        .subscribe();
     }
 
     private void unBindChannel() {
-
+        munBindChannelSubscription =
+                mService.unbindChannel(mWrapper.getToken(), mWrapper.getChanneGrouplID(), mWrapper.getChannelID())
+                        .subscribe();
     }
 
     private void pushProgram() {
-
+        mPushGroupProgramSubscription =
+                mService.pushGroupProgram(mWrapper.getBoxGrouplID(), mWrapper.getProgramID())
+                        .subscribe();
     }
 
     private Observable<String> login(String account, String password) {
@@ -147,16 +163,22 @@ public class MainActivity extends AppCompatActivity {
 
     private Observable<String> createBoxGroup(String token) {
         return mService.createBoxGroup(token, "Common", "Common", "0")
-                .flatMap(common -> {
-                    Log.d("ClassBoxServer", "" + common);
+                .flatMap(createBoxGroup -> {
+                    Log.d("ClassBoxServer", "" + createBoxGroup);
+                    BoxGroupInfo info = createBoxGroup.getContent();
+                    BoxGroup boxGroup = info.getBoxGroup();
+                    mWrapper.setBoxGroupID(boxGroup.get_id());
                     return Observable.just(token);
                 });
     }
 
     private Observable<String> createChannelGroup(String token) {
         return mService.createChannelGroup(token, "Common", "Common", "0")
-                .flatMap(common -> {
-                    Log.d("ClassBoxServer", "" + common);
+                .flatMap(createChannelGroup -> {
+                    Log.d("ClassBoxServer", "" + createChannelGroup);
+                    ChannelGroupInfo info = createChannelGroup.getContent();
+                    ChannelGroup channelGroup = info.getChannelGroup();
+                    mWrapper.setChannelGroupID(channelGroup.get_id());
                     return Observable.just(token);
                 });
     }
@@ -176,9 +198,24 @@ public class MainActivity extends AppCompatActivity {
                 ChannelInfo info = createChannel.getContent();
                 Channel channel = info.getChannel();
                 mWrapper.setChannelID(channel.get_id());
+                return Observable.just(token);
+            } else if (createChannel.getStatus().equals("3")) {
+                return getChannel(token, "https://www.youtube.com/embed/JaZRxsCDHzU?list=PLB53A5B3CCDC14B55");
+            } else {
+                return Observable.error(new Exception());
             }
-            return Observable.just(token);
         });
+    }
+
+    private Observable<String> getChannel(String token, String rtsp_url) {
+        return mService.getChannel(token, rtsp_url)
+                .flatMap(getChannel -> {
+                    Log.d("ClassBoxServer", "getChannel : " + getChannel);
+                    ChannelInfo info = getChannel.getContent();
+                    Channel channel = info.getChannel();
+                    mWrapper.setChannelID(channel.get_id());
+                    return Observable.just(token);
+                });
     }
 
     private Observable<String> createProgram(String token) {
@@ -218,6 +255,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (mInitSubscription != null) {
             mInitSubscription.unsubscribe();
+        }
+        if (mBindChannelSubscription != null) {
+            mBindChannelSubscription.unsubscribe();
+        }
+        if (munBindChannelSubscription != null) {
+            munBindChannelSubscription.unsubscribe();
+        }
+        if (mPushGroupProgramSubscription != null) {
+            mPushGroupProgramSubscription.unsubscribe();
         }
         super.onDestroy();
     }

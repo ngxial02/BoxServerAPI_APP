@@ -1,8 +1,11 @@
 package com.ngxial.classboxdemo.common.cloud.api;
 
 import com.ngxial.classboxdemo.common.cloud.pojo.Common;
+import com.ngxial.classboxdemo.common.cloud.pojo.CreateBoxGroup;
 import com.ngxial.classboxdemo.common.cloud.pojo.CreateChannel;
+import com.ngxial.classboxdemo.common.cloud.pojo.CreateChannelGroup;
 import com.ngxial.classboxdemo.common.cloud.pojo.CreateProgram;
+import com.ngxial.classboxdemo.common.cloud.pojo.GetChannel;
 import com.ngxial.classboxdemo.common.cloud.pojo.Login;
 
 import retrofit2.http.Field;
@@ -18,7 +21,7 @@ public interface ServiceMetadata {
 
     @FormUrlEncoded
     @POST("api/boxGroup/create")
-    Observable<Common> createBoxGroup(
+    Observable<CreateBoxGroup> createBoxGroup(
             @Field("accessToken") String accessToken,
             @Field("name") String name,
             @Field("description") String description,
@@ -27,7 +30,7 @@ public interface ServiceMetadata {
 
     @FormUrlEncoded
     @POST("api/channelGroup/create")
-    Observable<Common> createChannelGroup(
+    Observable<CreateChannelGroup> createChannelGroup(
             @Field("accessToken") String accessToken,
             @Field("name") String name,
             @Field("description") String description,
@@ -44,6 +47,13 @@ public interface ServiceMetadata {
             @Field("description") String description,
             @Field("remark") String remark,
             @Field("vender_id") String vender_id
+    );
+
+    @FormUrlEncoded
+    @POST("api/channel/get")
+    Observable<GetChannel> getChannel(
+            @Field("accessToken") String accessToken,
+            @Field("rtsp_url") String rtsp_url
     );
 
     @FormUrlEncoded
@@ -74,5 +84,20 @@ public interface ServiceMetadata {
             @Field("accessToken") String accessToken,
             @Field("channel_group_id") String channel_group_id,
             @Field("channel_id") String channel_id
+    );
+
+    @FormUrlEncoded
+    @POST("api/channelGroupMember/delete")
+    Observable<Common> unbindChannel(
+            @Field("accessToken") String accessToken,
+            @Field("channel_group_id") String channel_group_id,
+            @Field("channel_id") String channel_id
+    );
+
+    @FormUrlEncoded
+    @POST("/api/group/pushProgram")
+    Observable<Common> pushGroupProgram(
+            @Field("box_group_id") String box_group_id,
+            @Field("program_id") String program_id
     );
 }

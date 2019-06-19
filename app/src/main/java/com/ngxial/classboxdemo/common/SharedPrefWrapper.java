@@ -45,6 +45,24 @@ public class SharedPrefWrapper {
         mEditor.apply();
     }
 
+    public String getBoxGrouplID() {
+        return mPref.getString(KeyTagList.BOX_GROUP_ID, "");
+    }
+
+    public void setBoxGroupID(String boxGroupID) {
+        mEditor.putString(KeyTagList.BOX_GROUP_ID, boxGroupID);
+        mEditor.apply();
+    }
+
+    public String getChanneGrouplID() {
+        return mPref.getString(KeyTagList.CHANNEL_GROUP_ID, "");
+    }
+
+    public void setChannelGroupID(String channelGroupID) {
+        mEditor.putString(KeyTagList.CHANNEL_GROUP_ID, channelGroupID);
+        mEditor.apply();
+    }
+
     public String getChannelID() {
         return mPref.getString(KeyTagList.CHANNEL_ID, "");
     }
